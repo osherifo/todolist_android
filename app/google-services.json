@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "1014673136067",
+    "firebase_url": "https://todo-list-task.firebaseio.com",
+    "project_id": "todo-list-task",
+    "storage_bucket": "todo-list-task.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1014673136067:android:7029a0807297cc3f",
+        "android_client_info": {
+          "package_name": "com.example.omar.todolisttask"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1014673136067-8lieqjekg0arvgmnoqdsttad7gmr79vd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_4XgUiENLlOnoGg-LeupAoVxUAF42_Fs"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
