@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CheckedTextView;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -34,8 +35,9 @@ class TodoAdapter implements ListAdapter {
      ids=new ArrayList<String>();
         dones=new ArrayList<Boolean>();
         this.context=context;
-        todos.add("lllll");
-        dones.add(false);
+//        todos.add("lllll");
+//        dones.add(true);
+//        ids.add("fake key");
     }
 
 
@@ -99,14 +101,24 @@ class TodoAdapter implements ListAdapter {
 
 
          //   Log.i("WTF",String.valueOf(cb.getId()));
-       // cb.setChecked(dones.get(position));
+        cb.setChecked(dones.get(position));
+        cb.setTag(ids.get(position));
 
+        cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+                ((MainActivity) context).updateTodoDoneDB(String.valueOf((buttonView).getTag()),isChecked);
+
+            }
+        });
+        Log.i("checkbox tag:",cb.getTag().toString());
 
 //        todo.setLayoutParams(new LinearLayout.LayoutParams(
 //                list.getLayoutParams().MATCH_PARENT,
 //                100));
 
-        return todo;
+        return item;
 
     }
 
@@ -130,6 +142,7 @@ class TodoAdapter implements ListAdapter {
 
         todos.add(todoUpdate.getTodo().getTodo());
         dones.add(todoUpdate.getTodo().isDone());
+        ids.add(todoUpdate.getTodo().getKey());
         Log.d("adapter","add");
     }
 
@@ -141,5 +154,10 @@ class TodoAdapter implements ListAdapter {
     @Override
     public boolean isEnabled(int position) {
         return true;
+    }
+
+    public void update(TodoUpdate todoUpdate) {
+        int position= ids.indexOf(todoUpdate.getTodo().getKey());
+        dones.set(position,todoUpdate.getTodo().isDone());
     }
 }

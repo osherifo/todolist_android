@@ -67,7 +67,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onNext(TodoUpdate todoUpdate) {
                 Log.i("RXXXXXXX",todoUpdate.getTodo().getTodo() );
+                if(todoUpdate.getOperation()==todoUpdate.ADD)
                 todoadapt.add(todoUpdate);
+                else
+                    todoadapt.update(todoUpdate);
                 uncheckedtodos.setAdapter(todoadapt);
 
             }
@@ -143,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
 //        childRef.child("timestamp").setValue(date);
     }
 
-    private void updateTodoDoneDB(String ref,boolean done){
+    public void updateTodoDoneDB(String ref,boolean done){
         myRef.child(ref).child("todoi").child("done").setValue(String.valueOf(done));
     }
 
@@ -181,25 +184,23 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                             final Todo todo = convertDataSnapShotToTodo( dataSnapshot);
-                            subscriber.onNext(new TodoUpdate(todo));
+                            subscriber.onNext(new TodoUpdate(todo,TodoUpdate.ADD));
                         }
 
                         @Override
                         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                             final Todo todo = convertDataSnapShotToTodo( dataSnapshot);
-                            subscriber.onNext(new TodoUpdate(todo));
+                            subscriber.onNext(new TodoUpdate(todo,TodoUpdate.UPDATE));
                         }
 
                         @Override
                         public void onChildRemoved(DataSnapshot dataSnapshot) {
-                            final Todo todo = convertDataSnapShotToTodo( dataSnapshot);
-                            subscriber.onNext(new TodoUpdate(todo));
+
                         }
 
                         @Override
                         public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                            final Todo todo = convertDataSnapShotToTodo(dataSnapshot);
-                            subscriber.onNext(new TodoUpdate(todo));
+
                         }
 
                         @Override
@@ -218,9 +219,10 @@ public class MainActivity extends AppCompatActivity {
 
     //TODO:implement
     private Todo convertDataSnapShotToTodo(DataSnapshot data) {
+        Log.d("KEY:",data.getKey());
 
         return new Todo(data.child("todoi").child("todo").getValue().toString()
-        ,Boolean.valueOf(data.child("todoi").child("todo").getValue().toString()));
+        ,Boolean.valueOf(data.child("todoi").child("todo").getValue().toString()),data.getKey());
 
     }
 
