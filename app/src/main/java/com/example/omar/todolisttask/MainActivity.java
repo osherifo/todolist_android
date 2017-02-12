@@ -12,12 +12,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
-
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.Map;
 
 import rx.Observable;
 import rx.Observer;
@@ -27,7 +21,8 @@ import rx.Subscriber;
 public class MainActivity extends AppCompatActivity {
     private FirebaseDatabase database;
     private DatabaseReference myRef;
-    private TodoAdapter todoadapt;
+    private TodoAdapter todoadaptUndone;
+    private TodoAdapter todoadaptDone;
     private ListView uncheckedtodos;
     private ListView checkedtodos;
 
@@ -42,9 +37,13 @@ public class MainActivity extends AppCompatActivity {
 
         initDatabaseStreams();
 
-        todoadapt=new TodoAdapter(this);
+        todoadaptUndone=new TodoAdapter(this);
         uncheckedtodos=(ListView) findViewById(R.id.todos_list);
-        uncheckedtodos.setAdapter(todoadapt);
+        uncheckedtodos.setAdapter(todoadaptUndone);
+
+        todoadaptDone=new TodoAdapter(this);
+        checkedtodos=(ListView) findViewById(R.id.finished_todos_list);
+        checkedtodos.setAdapter(todoadaptDone);
 
     }
 
@@ -67,11 +66,30 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onNext(TodoUpdate todoUpdate) {
                 Log.i("RXXXXXXX",todoUpdate.getTodo().getTodo() );
+
+                Log.i("Rx add",String.valueOf(todoUpdate.getOperation()==todoUpdate.ADD));
+                Log.i("Rx done",String.valueOf(todoUpdate.getTodo().isDone()));
                 if(todoUpdate.getOperation()==todoUpdate.ADD)
-                todoadapt.add(todoUpdate);
+
+                    if(todoUpdate.getTodo().isDone())
+                        todoadaptDone.add(todoUpdate);
                 else
-                    todoadapt.update(todoUpdate);
-                uncheckedtodos.setAdapter(todoadapt);
+                        todoadaptUndone.add(todoUpdate);
+                else {
+                    if(todoUpdate.getTodo().isDone())
+                    {todoadaptUndone.remove(todoUpdate);
+                    todoadaptDone.add(todoUpdate);
+                        Log.i("MOVETO->","FINISHED");
+                    }
+                    else
+                    {
+                        todoadaptDone.remove(todoUpdate);
+                        todoadaptUndone.add(todoUpdate);
+                        Log.i("MOVETO->","UNFINISHED");
+                    }
+                }
+                checkedtodos.setAdapter(todoadaptDone);
+                uncheckedtodos.setAdapter(todoadaptUndone);
 
             }
 
@@ -185,12 +203,14 @@ public class MainActivity extends AppCompatActivity {
                         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                             final Todo todo = convertDataSnapShotToTodo( dataSnapshot);
                             subscriber.onNext(new TodoUpdate(todo,TodoUpdate.ADD));
+                            Log.d("Stream","Child added");
                         }
 
                         @Override
                         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                             final Todo todo = convertDataSnapShotToTodo( dataSnapshot);
                             subscriber.onNext(new TodoUpdate(todo,TodoUpdate.UPDATE));
+                            Log.d("Stream","Child updated");
                         }
 
                         @Override
@@ -222,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("KEY:",data.getKey());
 
         return new Todo(data.child("todoi").child("todo").getValue().toString()
-        ,Boolean.valueOf(data.child("todoi").child("todo").getValue().toString()),data.getKey());
+        ,Boolean.valueOf(data.child("todoi").child("done").getValue().toString()),data.getKey());
 
     }
 

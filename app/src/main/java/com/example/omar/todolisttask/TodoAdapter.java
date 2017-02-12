@@ -156,8 +156,12 @@ class TodoAdapter implements ListAdapter {
         return true;
     }
 
-    public void update(TodoUpdate todoUpdate) {
+    public void remove(TodoUpdate todoUpdate) {
         int position= ids.indexOf(todoUpdate.getTodo().getKey());
-        dones.set(position,todoUpdate.getTodo().isDone());
+//        dones.set(position,todoUpdate.getTodo().isDone());
+        ids.remove(position);
+        todos.remove(position);
+        dones.remove(position);
+
     }
 }
