@@ -11,6 +11,8 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -18,22 +20,29 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by omar on 2/11/17.
  */
 
-class TodoAdapter implements ListAdapter {
+class TodoAdapter implements ListAdapter,Filterable {
 
     private ArrayList<String> todos;
     private ArrayList<String> ids;
     private ArrayList<Boolean> dones;
+
     private Context context;
+
+    boolean filtering;
+    ArrayList<Integer> showables;
 
     public TodoAdapter(Context context){
     todos=new ArrayList<String>();
      ids=new ArrayList<String>();
         dones=new ArrayList<Boolean>();
+
+        filtering=false;
         this.context=context;
 //        todos.add("lllll");
 //        dones.add(true);
@@ -53,6 +62,9 @@ class TodoAdapter implements ListAdapter {
 
     @Override
     public int getCount() {
+
+        if(filtering)
+            return showables.size();
         return todos.size();
     }
 
@@ -73,6 +85,11 @@ class TodoAdapter implements ListAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+
+
+        if(filtering)
+            position=showables.get(position);
+
         Log.i("started from the:","BOTTOM");
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -93,14 +110,13 @@ class TodoAdapter implements ListAdapter {
         }
 
 
-        Log.i("->:",todos.get(position));
-        Log.i("->b:",String.valueOf(dones.get(position)));
+
         todo = (TextView) item.findViewById(R.id.todo_item_ctv);
         todo.setText(todos.get(position));
         cb =  (CheckBox) item.findViewById(R.id.todo_checkbox);
 
 
-         //   Log.i("WTF",String.valueOf(cb.getId()));
+
         cb.setChecked(dones.get(position));
         cb.setTag(ids.get(position));
 
@@ -112,11 +128,7 @@ class TodoAdapter implements ListAdapter {
 
             }
         });
-        Log.i("checkbox tag:",cb.getTag().toString());
 
-//        todo.setLayoutParams(new LinearLayout.LayoutParams(
-//                list.getLayoutParams().MATCH_PARENT,
-//                100));
 
         return item;
 
@@ -143,6 +155,7 @@ class TodoAdapter implements ListAdapter {
         todos.add(todoUpdate.getTodo().getTodo());
         dones.add(todoUpdate.getTodo().isDone());
         ids.add(todoUpdate.getTodo().getKey());
+
         Log.d("adapter","add");
     }
 
@@ -156,12 +169,58 @@ class TodoAdapter implements ListAdapter {
         return true;
     }
 
+    //TODO: handle during filter
     public void remove(TodoUpdate todoUpdate) {
         int position= ids.indexOf(todoUpdate.getTodo().getKey());
-//        dones.set(position,todoUpdate.getTodo().isDone());
+
         ids.remove(position);
         todos.remove(position);
         dones.remove(position);
 
+
+    }
+
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+
+
+
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+
+                FilterResults results=new FilterResults();
+
+                showables=new ArrayList<Integer>();
+
+                if(constraint!=null&&constraint.length()!=0)
+
+                {
+                    filtering=true;
+              for (int i=0;i<todos.size();i++)
+                  if(todos.get(i).contains(constraint))
+                      showables.add(i);
+
+                }
+                else{
+                    filtering=false;
+                    showables=new ArrayList<Integer>();
+                }
+
+
+                return results;
+            }
+
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+
+
+            }
+        };
+    }
+
+    public void stopFiltering(){
+        filtering=false;
+        showables=new ArrayList<Integer>();
     }
 }

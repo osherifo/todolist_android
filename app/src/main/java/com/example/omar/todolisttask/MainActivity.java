@@ -1,11 +1,9 @@
 package com.example.omar.todolisttask;
 
-//import android.support.v4.view.MenuItemCompat;
-import android.support.v4.view.MenuCompat;
+
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.MenuItemHoverListener;
 import android.widget.SearchView;
 import android.util.Log;
 import android.view.Menu;
@@ -77,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemActionCollapse(MenuItem item) {
                 findViewById(R.id.add_items_container).setVisibility(View.VISIBLE);
+                todoadaptDone.stopFiltering();
+                todoadaptUndone.stopFiltering();
                 return true;
             }
         });
@@ -92,6 +92,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                todoadaptDone.getFilter().filter(newText);
+                todoadaptUndone.getFilter().filter(newText);
+                checkedtodos.setAdapter(todoadaptDone);
+                uncheckedtodos.setAdapter(todoadaptUndone);
                 return false;
             }
         });
