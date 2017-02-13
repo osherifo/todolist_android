@@ -70,7 +70,7 @@ class TodoAdapter implements ListAdapter,Filterable {
 
     @Override
     public Object getItem(int position) {
-        return position;
+        return todos.get(position);
     }
 
     @Override
@@ -176,6 +176,8 @@ class TodoAdapter implements ListAdapter,Filterable {
         ids.remove(position);
         todos.remove(position);
         dones.remove(position);
+//        boolean found=showables.remove(Integer.valueOf(position));
+
 
 
     }
