@@ -2,6 +2,7 @@ package com.example.omar.todolisttask;
 
 import android.content.Context;
 import android.database.DataSetObserver;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,7 @@ class TodoAdapter implements ListAdapter, Filterable {
 
     boolean filtering;
     ArrayList<Integer> showables;
+    int showableIndex;
 
     /**
      * The constructor for the class initializing empty sets of to do items,their done statuses, their ids,and whether
@@ -67,9 +69,13 @@ class TodoAdapter implements ListAdapter, Filterable {
             return showables.size();
         return todos.size();
     }
-
+int searchIndex=0;
     @Override
     public Object getItem(int position) {
+        if(searchIndex==getCount())
+            searchIndex=0;
+        if(filtering)
+            return todos.get(searchIndex++);
         return todos.get(position);
     }
 
@@ -86,17 +92,17 @@ class TodoAdapter implements ListAdapter, Filterable {
     /**
      *The method responsible for creating a view at a specified index of the list view
      * ,inflates a predefined layout and adds a listener to the checkbox for taking appropriate action
-     * @param position
-     * @param convertView
-     * @param parent
-     * @return
+     * @param position the row position
+     * @param convertView inherited
+     * @param parent inherited
+     * @return The view to be displayed in the row position
      */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
 
         if (filtering)
-            position = showables.get(position);
+            position = showables.get(showableIndex++);
 
 
         LayoutInflater inflater = (LayoutInflater) context
@@ -195,6 +201,8 @@ class TodoAdapter implements ListAdapter, Filterable {
             for (int i = 0; i < showables.size(); i++)
                 if (showables.get(i) > position)
                     showables.set(i, showables.get(i) - 1);
+            if(position<showableIndex)
+                showableIndex--;
         }
 
 
@@ -216,6 +224,7 @@ class TodoAdapter implements ListAdapter, Filterable {
                 FilterResults results = new FilterResults();
 
                 showables = new ArrayList<Integer>();
+                showableIndex=0;
 
                 if (constraint != null && constraint.length() != 0)
 
@@ -248,5 +257,6 @@ class TodoAdapter implements ListAdapter, Filterable {
     public void stopFiltering() {
         filtering = false;
         showables = new ArrayList<Integer>();
+        showableIndex=0;
     }
 }
