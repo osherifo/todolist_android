@@ -1,21 +1,24 @@
 package com.example.omar.todolisttask;
 
 /**
- * Created by omar on 2/10/17.
+ * A class representing a to do update operation
  */
 public class TodoUpdate {
     private Todo todo;
-    public static final boolean ADD=true;
-    public static final boolean UPDATE=false;
+    public static final boolean ADD = true;
+    public static final boolean UPDATE = false;
     private boolean operation;
-    public TodoUpdate(Todo todo,boolean operation) {
-    this.todo=todo;
-    this.operation=operation;
+
+    public TodoUpdate(Todo todo, boolean operation) {
+        this.todo = todo;
+        this.operation = operation;
     }
-    public Todo getTodo(){
+
+    public Todo getTodo() {
         return todo;
     }
-    public boolean getOperation(){
+
+    public boolean getOperation() {
         return operation;
     }
 }

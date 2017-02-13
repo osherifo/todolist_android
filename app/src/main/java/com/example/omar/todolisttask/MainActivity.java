@@ -1,17 +1,16 @@
 package com.example.omar.todolisttask;
 
 
+import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.widget.SearchView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.SearchView;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -41,17 +40,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initDatabaseConnection();
+        initObserver();
 
-
-
-        initDatabaseStreams();
-
-        todoadaptUndone=new TodoAdapter(this);
-        uncheckedtodos=(ListView) findViewById(R.id.todos_list);
+        todoadaptUndone = new TodoAdapter(this);
+        uncheckedtodos = (ListView) findViewById(R.id.todos_list);
         uncheckedtodos.setAdapter(todoadaptUndone);
 
-        todoadaptDone=new TodoAdapter(this);
-        checkedtodos=(ListView) findViewById(R.id.finished_todos_list);
+        todoadaptDone = new TodoAdapter(this);
+        checkedtodos = (ListView) findViewById(R.id.finished_todos_list);
         checkedtodos.setAdapter(todoadaptDone);
 
     }
@@ -61,8 +57,8 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.options_menu, menu);
-        MenuItem searchitem=menu.findItem(R.id.search_view);
-        SearchView searchview= (SearchView) searchitem.getActionView();
+        MenuItem searchitem = menu.findItem(R.id.search_view);
+        SearchView searchview = (SearchView) searchitem.getActionView();
 
 
         MenuItemCompat.setOnActionExpandListener(searchitem, new MenuItemCompat.OnActionExpandListener() {
@@ -80,8 +76,6 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-
-
 
 
         searchview.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -105,45 +99,39 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private void initDatabaseStreams() {
+    /**
+     * Initializes the Observer object and sets it's onNext method to update the 2 adapters
+     * according to the update operation
+     *
+     */
+    private void initObserver() {
 
-
-
-
-
-       // Observable.fromCallable(database.)
 
         Observer<TodoUpdate> myObserver = new Observer<TodoUpdate>() {
 
 
             @Override
             public void onError(Throwable e) {
-                // Called when the observable encounters an error
+
             }
 
             @Override
             public void onNext(TodoUpdate todoUpdate) {
-                Log.i("RXXXXXXX",todoUpdate.getTodo().getTodo() );
+                if (todoUpdate.getOperation() == todoUpdate.ADD)
 
-                Log.i("Rx add",String.valueOf(todoUpdate.getOperation()==todoUpdate.ADD));
-                Log.i("Rx done",String.valueOf(todoUpdate.getTodo().isDone()));
-                if(todoUpdate.getOperation()==todoUpdate.ADD)
-
-                    if(todoUpdate.getTodo().isDone())
+                    if (todoUpdate.getTodo().isDone())
                         todoadaptDone.add(todoUpdate);
-                else
+                    else
                         todoadaptUndone.add(todoUpdate);
                 else {
-                    if(todoUpdate.getTodo().isDone())
-                    {todoadaptUndone.remove(todoUpdate);
-                    todoadaptDone.add(todoUpdate);
-                        Log.i("MOVETO->","FINISHED");
-                    }
-                    else
-                    {
+                    if (todoUpdate.getTodo().isDone()) {
+                        todoadaptUndone.remove(todoUpdate);
+                        todoadaptDone.add(todoUpdate);
+
+                    } else {
                         todoadaptDone.remove(todoUpdate);
                         todoadaptUndone.add(todoUpdate);
-                        Log.i("MOVETO->","UNFINISHED");
+
                     }
                 }
                 checkedtodos.setAdapter(todoadaptDone);
@@ -156,13 +144,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
-
-
-//            @Override
-//            public void onNext(String s) {
-//                // Called each time the observable emits data
-//                Log.i("TODO:", s);
-//            }
         };
 
 
@@ -170,53 +151,68 @@ public class MainActivity extends AppCompatActivity {
         TodoUpdatesObservable.subscribe(myObserver);
     }
 
+    /**
+     * Initializes connection with database
+     */
     private void initDatabaseConnection() {
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("todoItems");
 
 
-
     }
 
+    /**
+     * Inserts a to do item into the database for the first time
+     * with a done value of false
+     * @param todo A string that represents a todo item
+     */
 
-    private void insertTodoDB(String todo){
+    private void insertTodoDB(String todo) {
 
 
         DatabaseReference childRef = myRef.push();
 
 
-        Todo td=new Todo(todo,false);
+        Todo td = new Todo(todo, false);
 
         childRef.child("todoi").setValue(td);
 
 
     }
 
-    public void updateTodoDoneDB(String ref,boolean done){
+
+
+
+    /**
+     * Updates the value of done for a specific to do entry
+     * @param ref A string representing the reference of the entry in the database
+     * @param done A boolean representing the new value of done in the targeted to do
+     */
+    public void updateTodoDoneDB(String ref, boolean done) {
         myRef.child(ref).child("todoi").child("done").setValue(String.valueOf(done));
     }
 
+    /**
+     * Listens for clicks on the add item button and generates a new to do item and inserts it to the database
+     * @param view The view associated with the listener
+     */
 
-    private void updateTable(){
-
-    }
-
-
-    public void addItemButtonListener(View view){
+    public void addItemButtonListener(View view) {
         EditText todoTextView = (EditText) findViewById(R.id.add_todo_text);
-        String todo= todoTextView.getText().toString();
-        if(!todo.isEmpty()) {
-            Log.i("TODO:", todo);
+        String todo = todoTextView.getText().toString();
+        if (!todo.isEmpty()) {
             todoTextView.setText("");
             insertTodoDB(todo);
         }
 
     }
 
-
-
-
+    /**
+     *Creates an observable stream of to do updates out of the database reference and notifies the observer of
+     * any relevant change in the database
+     * @return The Observable object created
+     */
 
     public Observable<TodoUpdate> subscribeToTodoUpdates() {
         if (TodoUpdatesObservable == null) {
@@ -227,16 +223,15 @@ public class MainActivity extends AppCompatActivity {
                     TodoUpdatesListener = myRef.addChildEventListener(new ChildEventListener() {
                         @Override
                         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                            final Todo todo = convertDataSnapShotToTodo( dataSnapshot);
-                            subscriber.onNext(new TodoUpdate(todo,TodoUpdate.ADD));
-                            Log.d("Stream","Child added");
+                            final Todo todo = convertDataSnapShotToTodo(dataSnapshot);
+                            subscriber.onNext(new TodoUpdate(todo, TodoUpdate.ADD));
                         }
 
                         @Override
                         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                            final Todo todo = convertDataSnapShotToTodo( dataSnapshot);
-                            subscriber.onNext(new TodoUpdate(todo,TodoUpdate.UPDATE));
-                            Log.d("Stream","Child updated");
+                            final Todo todo = convertDataSnapShotToTodo(dataSnapshot);
+                            subscriber.onNext(new TodoUpdate(todo, TodoUpdate.UPDATE));
+
                         }
 
                         @Override
@@ -263,12 +258,15 @@ public class MainActivity extends AppCompatActivity {
         return TodoUpdatesObservable;
     }
 
-
+    /**
+     *Converts a data object received from the database to a corresponding to do update object
+     * @param data the data object received from the database
+     * @return the corresponding to do update object
+     */
     private Todo convertDataSnapShotToTodo(DataSnapshot data) {
-        Log.d("KEY:",data.getKey());
 
         return new Todo(data.child("todoi").child("todo").getValue().toString()
-        ,Boolean.valueOf(data.child("todoi").child("done").getValue().toString()),data.getKey());
+                , Boolean.valueOf(data.child("todoi").child("done").getValue().toString()), data.getKey());
 
     }
 

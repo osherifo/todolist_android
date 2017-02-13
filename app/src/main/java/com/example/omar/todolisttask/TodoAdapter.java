@@ -2,31 +2,23 @@ package com.example.omar.todolisttask;
 
 import android.content.Context;
 import android.database.DataSetObserver;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.CheckBox;
-import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
 import android.widget.Filter;
 import android.widget.Filterable;
-import android.widget.LinearLayout;
 import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
- * Created by omar on 2/11/17.
+ * The class responsible for adapting data from the database to views representable in a list in the UI
  */
 
-class TodoAdapter implements ListAdapter,Filterable {
+class TodoAdapter implements ListAdapter, Filterable {
 
     private ArrayList<String> todos;
     private ArrayList<String> ids;
@@ -37,16 +29,20 @@ class TodoAdapter implements ListAdapter,Filterable {
     boolean filtering;
     ArrayList<Integer> showables;
 
-    public TodoAdapter(Context context){
-    todos=new ArrayList<String>();
-     ids=new ArrayList<String>();
-        dones=new ArrayList<Boolean>();
+    /**
+     * The constructor for the class initializing empty sets of to do items,their done statuses, their ids,and whether
+     * a variable representing whether filtering is active or not as well as an empty set that will represent the indices
+     * of items to be visible if filtering is active
+     * @param context The activity calling this adapter
+     */
 
-        filtering=false;
-        this.context=context;
-//        todos.add("lllll");
-//        dones.add(true);
-//        ids.add("fake key");
+    public TodoAdapter(Context context) {
+        todos = new ArrayList<String>();
+        ids = new ArrayList<String>();
+        dones = new ArrayList<Boolean>();
+
+        filtering = false;
+        this.context = context;
     }
 
 
@@ -60,10 +56,14 @@ class TodoAdapter implements ListAdapter,Filterable {
 
     }
 
+    /**
+     * Returns the count of views to be shown in the list
+     * @return The count of the items to be shown
+     */
     @Override
     public int getCount() {
 
-        if(filtering)
+        if (filtering)
             return showables.size();
         return todos.size();
     }
@@ -83,14 +83,22 @@ class TodoAdapter implements ListAdapter,Filterable {
         return false;
     }
 
+    /**
+     *The method responsible for creating a view at a specified index of the list view
+     * ,inflates a predefined layout and adds a listener to the checkbox for taking appropriate action
+     * @param position
+     * @param convertView
+     * @param parent
+     * @return
+     */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
 
-        if(filtering)
-            position=showables.get(position);
+        if (filtering)
+            position = showables.get(position);
 
-        Log.i("started from the:","BOTTOM");
+
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -101,8 +109,7 @@ class TodoAdapter implements ListAdapter,Filterable {
         if (convertView == null) {
 
 
-        item = inflater.inflate(R.layout.todo_item,null);
-
+            item = inflater.inflate(R.layout.todo_item, null);
 
 
         } else {
@@ -110,11 +117,9 @@ class TodoAdapter implements ListAdapter,Filterable {
         }
 
 
-
         todo = (TextView) item.findViewById(R.id.todo_item_ctv);
         todo.setText(todos.get(position));
-        cb =  (CheckBox) item.findViewById(R.id.todo_checkbox);
-
+        cb = (CheckBox) item.findViewById(R.id.todo_checkbox);
 
 
         cb.setChecked(dones.get(position));
@@ -124,7 +129,7 @@ class TodoAdapter implements ListAdapter,Filterable {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
-                ((MainActivity) context).updateTodoDoneDB(String.valueOf((buttonView).getTag()),isChecked);
+                ((MainActivity) context).updateTodoDoneDB(String.valueOf((buttonView).getTag()), isChecked);
 
             }
         });
@@ -149,16 +154,19 @@ class TodoAdapter implements ListAdapter,Filterable {
         return todos.isEmpty();
     }
 
-
-    public void add(TodoUpdate todoUpdate){
+    /**
+     *Adds an entry to be displayed in the list
+     * @param todoUpdate An object containing the parameters for a single to do entry
+     */
+    public void add(TodoUpdate todoUpdate) {
 
         todos.add(todoUpdate.getTodo().getTodo());
         dones.add(todoUpdate.getTodo().isDone());
         ids.add(todoUpdate.getTodo().getKey());
-        if(filtering)
-            showables.add(todos.size()-1);
+        if (filtering)
+            showables.add(todos.size() - 1);
 
-        Log.d("adapter","add");
+
     }
 
     @Override
@@ -171,49 +179,55 @@ class TodoAdapter implements ListAdapter,Filterable {
         return true;
     }
 
-    //TODO: handle during filter
+    /**
+     *Removes an entry from the list
+     * @param todoUpdate An object containing the parameters for a single to do entry
+     */
     public void remove(TodoUpdate todoUpdate) {
-        int position= ids.indexOf(todoUpdate.getTodo().getKey());
+        int position = ids.indexOf(todoUpdate.getTodo().getKey());
 
         ids.remove(position);
         todos.remove(position);
         dones.remove(position);
         boolean found;
-        if(filtering) {
+        if (filtering) {
             found = showables.remove(Integer.valueOf(position));
-            for(int i=0;i<showables.size();i++)
-                if(showables.get(i)>position)
-                    showables.set(i,showables.get(i)-1);
+            for (int i = 0; i < showables.size(); i++)
+                if (showables.get(i) > position)
+                    showables.set(i, showables.get(i) - 1);
         }
 
 
     }
 
+    /**
+     *Creates a new filter that finds to dos containing the search text and adds their indices
+     * to the list of items to be shown
+     * @return The created filter
+     */
     @Override
     public Filter getFilter() {
         return new Filter() {
 
 
-
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
 
-                FilterResults results=new FilterResults();
+                FilterResults results = new FilterResults();
 
-                showables=new ArrayList<Integer>();
+                showables = new ArrayList<Integer>();
 
-                if(constraint!=null&&constraint.length()!=0)
+                if (constraint != null && constraint.length() != 0)
 
                 {
-                    filtering=true;
-              for (int i=0;i<todos.size();i++)
-                  if(todos.get(i).contains(constraint))
-                      showables.add(i);
+                    filtering = true;
+                    for (int i = 0; i < todos.size(); i++)
+                        if (todos.get(i).contains(constraint))
+                            showables.add(i);
 
-                }
-                else{
-                    filtering=false;
-                    showables=new ArrayList<Integer>();
+                } else {
+                    filtering = false;
+                    showables = new ArrayList<Integer>();
                 }
 
 
@@ -228,8 +242,11 @@ class TodoAdapter implements ListAdapter,Filterable {
         };
     }
 
-    public void stopFiltering(){
-        filtering=false;
-        showables=new ArrayList<Integer>();
+    /**
+     *resets the parameters for filtering
+     */
+    public void stopFiltering() {
+        filtering = false;
+        showables = new ArrayList<Integer>();
     }
 }
