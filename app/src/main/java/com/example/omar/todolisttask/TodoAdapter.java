@@ -155,6 +155,8 @@ class TodoAdapter implements ListAdapter,Filterable {
         todos.add(todoUpdate.getTodo().getTodo());
         dones.add(todoUpdate.getTodo().isDone());
         ids.add(todoUpdate.getTodo().getKey());
+        if(filtering)
+            showables.add(todos.size()-1);
 
         Log.d("adapter","add");
     }
@@ -176,8 +178,13 @@ class TodoAdapter implements ListAdapter,Filterable {
         ids.remove(position);
         todos.remove(position);
         dones.remove(position);
-//        boolean found=showables.remove(Integer.valueOf(position));
-
+        boolean found;
+        if(filtering) {
+            found = showables.remove(Integer.valueOf(position));
+            for(int i=0;i<showables.size();i++)
+                if(showables.get(i)>position)
+                    showables.set(i,showables.get(i)-1);
+        }
 
 
     }

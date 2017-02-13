@@ -92,10 +92,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                todoadaptUndone.stopFiltering();
+                todoadaptDone.stopFiltering();
                 todoadaptDone.getFilter().filter(newText);
                 todoadaptUndone.getFilter().filter(newText);
                 checkedtodos.setAdapter(todoadaptDone);
                 uncheckedtodos.setAdapter(todoadaptUndone);
+
                 return false;
             }
         });
